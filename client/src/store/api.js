@@ -168,7 +168,7 @@ export const api = createApi({
           cleanParams.tags = Array.isArray(params.tags) ? params.tags.join(',') : params.tags;
         }
         if (params.q && params.q.trim() !== '') cleanParams.q = params.q.trim();
-        if (params.cursor) cleanParams.cursor = params.cursor;
+        if (params.page) cleanParams.page = params.page;
         if (params.sortBy) cleanParams.sortBy = params.sortBy;
         if (params.sortOrder) cleanParams.sortOrder = params.sortOrder;
         
@@ -220,16 +220,23 @@ export const api = createApi({
       invalidatesTags: [{ type: 'Task', id: 'LIST' }],
       
       // Force refetch of all task queries after successful creation
-      async onQueryStarted(task, { dispatch, queryFulfilled }) {
+      async onQueryStarted(task, { dispatch, queryFulfilled, getState }) {
         try {
           const result = await queryFulfilled;
           console.log('Task created successfully:', result.data);
           
           // Invalidate all task queries to ensure fresh data
           dispatch(api.util.invalidateTags([{ type: 'Task', id: 'LIST' }]));
-          
-          // Also refetch the current tasks query
           dispatch(api.util.invalidateTags(['Task']));
+          
+          // Force refetch the current tasks query
+          const state = getState();
+          const currentQuery = state.api.queries;
+          Object.keys(currentQuery).forEach(queryKey => {
+            if (queryKey.startsWith('getTasks')) {
+              dispatch(api.util.refetchTags(['Task']));
+            }
+          });
           
         } catch (error) {
           console.error('Create task failed:', error);

@@ -32,8 +32,8 @@ const TasksPage = () => {
   const tags = getParam('tags', '');
   const priority = getParam('priority', '');
   const q = getParam('q', '');
-  const cursor = getParam('cursor', '');
-  const limit = getParam('limit', '20');
+  const page = getParam('page', '1');
+  const limit = getParam('limit', '5');
   const sortBy = getParam('sortBy', 'createdAt');
   const sortOrder = getParam('sortOrder', 'desc');
   
@@ -58,7 +58,7 @@ const TasksPage = () => {
     tags,
     priority,
     q,
-    cursor,
+    page: parseInt(page),
     limit: parseInt(limit),
     sortBy,
     sortOrder,
@@ -118,29 +118,34 @@ const TasksPage = () => {
     
     setMultipleParams({
       scope: newScope,
-      cursor: '', // Reset cursor when changing scope
+      page: '1', // Reset to first page when changing scope
     });
   };
   
   const handleFilterChange = (filters) => {
     setMultipleParams({
       ...filters,
-      cursor: '', // Reset cursor when filters change
+      page: '1', // Reset to first page when filters change
     });
   };
   
   const handleSearch = (searchTerm) => {
     console.log('Search term:', searchTerm);
     setParam('q', searchTerm);
-    setParam('cursor', ''); // Reset cursor when searching
+    setParam('page', '1'); // Reset to first page when searching
   };
   
   const handlePagination = (direction) => {
-    if (direction === 'next' && tasksData?.nextCursor) {
-      setParam('cursor', tasksData.nextCursor);
-    } else if (direction === 'prev' && tasksData?.prevCursor) {
-      setParam('cursor', tasksData.prevCursor);
+    const currentPage = parseInt(page);
+    if (direction === 'next' && tasksData?.hasNext) {
+      setParam('page', (currentPage + 1).toString());
+    } else if (direction === 'prev' && tasksData?.hasPrev) {
+      setParam('page', (currentPage - 1).toString());
     }
+  };
+  
+  const handlePageChange = (newPage) => {
+    setParam('page', newPage.toString());
   };
   
   const handleTaskSelect = (taskId) => {
@@ -179,6 +184,10 @@ const TasksPage = () => {
       const result = await createTask(taskData).unwrap();
       console.log('Task created successfully:', result);
       setShowCreateModal(false);
+      
+      // Force refetch the tasks to ensure new task appears
+      await refetch();
+      
       // Show success message
       console.log('Task created successfully');
     } catch (error) {
@@ -453,24 +462,48 @@ const TasksPage = () => {
                 </table>
                 
                 {/* Pagination */}
-                {(tasksData?.nextCursor || tasksData?.prevCursor) && (
+                {tasksData?.totalPages > 1 && (
                   <div className="px-6 py-4 border-t border-gray-200">
                     <div className="flex items-center justify-between">
                       <div className="text-sm text-gray-700">
-                        Showing {tasksData?.tasks?.length || 0} tasks
+                        Showing {((parseInt(page) - 1) * parseInt(limit)) + 1} to {Math.min(parseInt(page) * parseInt(limit), tasksData?.total || 0)} of {tasksData?.total || 0} tasks
                       </div>
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => handlePagination('prev')}
-                          disabled={!tasksData?.prevCursor}
+                          disabled={!tasksData?.hasPrev}
                           className="btn btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <ChevronLeft className="h-4 w-4" />
                           Previous
                         </button>
+                        
+                        {/* Page Numbers */}
+                        <div className="flex items-center space-x-1">
+                          {Array.from({ length: Math.min(5, tasksData?.totalPages || 0) }, (_, i) => {
+                            const startPage = Math.max(1, parseInt(page) - 2);
+                            const pageNum = startPage + i;
+                            if (pageNum > tasksData?.totalPages) return null;
+                            
+                            return (
+                              <button
+                                key={pageNum}
+                                onClick={() => handlePageChange(pageNum)}
+                                className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                                  pageNum === parseInt(page)
+                                    ? 'bg-primary-600 text-white'
+                                    : 'text-gray-700 hover:bg-gray-100'
+                                }`}
+                              >
+                                {pageNum}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        
                         <button
                           onClick={() => handlePagination('next')}
-                          disabled={!tasksData?.nextCursor}
+                          disabled={!tasksData?.hasNext}
                           className="btn btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           Next

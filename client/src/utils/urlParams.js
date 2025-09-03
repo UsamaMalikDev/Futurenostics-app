@@ -33,9 +33,16 @@ const PARAM_CONFIG = {
     validate: (value) => typeof value === 'string',
   },
   limit: {
-    defaultValue: '20',
-    validValues: ['10', '20', '50', '100'],
+    defaultValue: '5',
+    validValues: ['5', '10', '20', '50', '100'],
     validate: (value) => PARAM_CONFIG.limit.validValues.includes(value),
+  },
+  page: {
+    defaultValue: '1',
+    validate: (value) => {
+      const num = parseInt(value);
+      return !isNaN(num) && num > 0;
+    },
   },
   sortBy: {
     defaultValue: 'createdAt',

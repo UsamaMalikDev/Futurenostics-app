@@ -24,8 +24,8 @@ export class TasksService {
     return task.save();
   }
 
-  async findAll(queryDto: QueryTasksDto, user: any): Promise<{ tasks: Task[]; nextCursor?: string; prevCursor?: string; total?: number }> {
-    const { cursor, limit = 20, scope, sortBy = 'createdAt', sortOrder = 'desc', ...filters } = queryDto;
+  async findAll(queryDto: QueryTasksDto, user: any): Promise<{ tasks: Task[]; total: number; page: number; totalPages: number; hasNext: boolean; hasPrev: boolean }> {
+    const { page = 1, limit = 5, scope, sortBy = 'createdAt', sortOrder = 'desc', ...filters } = queryDto;
     
     // Build query based on user role and scope
     let query: any = { orgId: new Types.ObjectId(user.orgId) };
@@ -77,35 +77,28 @@ export class TasksService {
       sortObj.createdAt = -1;
     }
     
-    // Cursor pagination
-    if (cursor) {
-      query._id = { $gt: new Types.ObjectId(cursor) };
-    }
+    // Page-based pagination
+    const skip = (page - 1) * limit;
     
     // Get total count for pagination info
     const total = await this.taskModel.countDocuments(query);
+    const totalPages = Math.ceil(total / limit);
     
     const tasks = await this.taskModel
       .find(query)
       .sort(sortObj)
-      .limit(limit + 1)
+      .skip(skip)
+      .limit(limit)
       .exec();
     
-    let nextCursor: string | undefined;
-    let prevCursor: string | undefined;
-    
-    if (tasks.length > limit) {
-      nextCursor = tasks[limit - 1]._id.toString();
-      tasks.splice(limit);
-    }
-    
-    // For prev cursor, we'd need to implement reverse pagination
-    // For now, we'll just return the current cursor as prev cursor
-    if (cursor) {
-      prevCursor = cursor;
-    }
-    
-    return { tasks, nextCursor, prevCursor, total };
+    return {
+      tasks,
+      total,
+      page,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrev: page > 1,
+    };
   }
 
   async findOne(id: string, user: any): Promise<Task> {
