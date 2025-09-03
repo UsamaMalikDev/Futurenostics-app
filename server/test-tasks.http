@@ -1,0 +1,26 @@
+### Test Tasks API with Frontend Parameters
+
+### 1. Login first to get token
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "user123"
+}
+
+### 2. Test tasks endpoint with frontend parameters
+GET http://localhost:3000/api/tasks?scope=my&status=todo&priority=high&q=test&sortBy=createdAt&sortOrder=desc&limit=20
+Authorization: Bearer YOUR_TOKEN_HERE
+
+### 3. Test with tags parameter
+GET http://localhost:3000/api/tasks?tags=urgent,important&scope=my
+Authorization: Bearer YOUR_TOKEN_HERE
+
+### 4. Test with all parameters
+GET http://localhost:3000/api/tasks?scope=my&status=in_progress&priority=medium&q=project&sortBy=title&sortOrder=asc&limit=10&cursor=test
+Authorization: Bearer YOUR_TOKEN_HERE
+
+### 5. Test organization scope (for managers/admins)
+GET http://localhost:3000/api/tasks?scope=org&status=done
+Authorization: Bearer YOUR_TOKEN_HERE

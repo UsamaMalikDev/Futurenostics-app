@@ -24,16 +24,17 @@ export class TasksService {
     return task.save();
   }
 
-  async findAll(queryDto: QueryTasksDto, user: any): Promise<{ tasks: Task[]; nextCursor?: string }> {
-    const { cursor, limit = 20, ...filters } = queryDto;
+  async findAll(queryDto: QueryTasksDto, user: any): Promise<{ tasks: Task[]; nextCursor?: string; prevCursor?: string; total?: number }> {
+    const { cursor, limit = 20, scope, sortBy = 'createdAt', sortOrder = 'desc', ...filters } = queryDto;
     
-    // Build query based on user role
+    // Build query based on user role and scope
     let query: any = { orgId: new Types.ObjectId(user.orgId) };
     
-    // Apply role-based restrictions
-    if (user.roles.includes(UserRole.USER) && !user.roles.includes(UserRole.MANAGER)) {
+    // Apply scope-based restrictions
+    if (scope === 'my' || (user.roles.includes(UserRole.USER) && !user.roles.includes(UserRole.MANAGER))) {
       query.ownerId = new Types.ObjectId(user.id);
     }
+    // If scope is 'org' and user has manager/admin role, show all org tasks
     
     // Apply filters
     if (filters.status) query.status = filters.status;
@@ -51,9 +52,29 @@ export class TasksService {
       if (filters.dueDateTo) query.dueDate.$lte = new Date(filters.dueDateTo);
     }
     
-    // Text search
-    if (filters.search) {
-      query.$text = { $search: filters.search };
+    // Text search - support both 'q' and 'search' parameters
+    const searchTerm = filters.q || filters.search;
+    if (searchTerm) {
+      query.$or = [
+        { title: { $regex: searchTerm, $options: 'i' } },
+        { description: { $regex: searchTerm, $options: 'i' } },
+        { tags: { $in: [new RegExp(searchTerm, 'i')] } }
+      ];
+    }
+    
+    // Build sort object
+    const sortObj: any = {};
+    if (sortBy === 'createdAt' || sortBy === 'updatedAt') {
+      sortObj[sortBy] = sortOrder === 'asc' ? 1 : -1;
+    } else if (sortBy === 'title') {
+      sortObj.title = sortOrder === 'asc' ? 1 : -1;
+    } else if (sortBy === 'priority') {
+      sortObj.priority = sortOrder === 'asc' ? 1 : -1;
+    } else if (sortBy === 'status') {
+      sortObj.status = sortOrder === 'asc' ? 1 : -1;
+    } else {
+      // Default sort
+      sortObj.createdAt = -1;
     }
     
     // Cursor pagination
@@ -61,19 +82,30 @@ export class TasksService {
       query._id = { $gt: new Types.ObjectId(cursor) };
     }
     
+    // Get total count for pagination info
+    const total = await this.taskModel.countDocuments(query);
+    
     const tasks = await this.taskModel
       .find(query)
-      .sort({ _id: 1 })
+      .sort(sortObj)
       .limit(limit + 1)
       .exec();
     
     let nextCursor: string | undefined;
+    let prevCursor: string | undefined;
+    
     if (tasks.length > limit) {
       nextCursor = tasks[limit - 1]._id.toString();
       tasks.splice(limit);
     }
     
-    return { tasks, nextCursor };
+    // For prev cursor, we'd need to implement reverse pagination
+    // For now, we'll just return the current cursor as prev cursor
+    if (cursor) {
+      prevCursor = cursor;
+    }
+    
+    return { tasks, nextCursor, prevCursor, total };
   }
 
   async findOne(id: string, user: any): Promise<Task> {

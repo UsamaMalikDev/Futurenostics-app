@@ -14,6 +14,12 @@ export class QueryTasksDto {
   @Type(() => Number)
   limit?: number = 20;
 
+  // Frontend sends 'q' for search query
+  @IsOptional()
+  @IsString()
+  q?: string;
+
+  // Also support 'search' for backward compatibility
   @IsOptional()
   @IsString()
   search?: string;
@@ -25,11 +31,34 @@ export class QueryTasksDto {
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      return value.split(',').map(tag => tag.trim()).filter(Boolean);
+    }
+    return value;
+  })
   tags?: string[];
 
   @IsOptional()
   @IsEnum(TaskPriority)
   priority?: TaskPriority;
+
+  // Frontend sends 'scope' parameter
+  @IsOptional()
+  @IsString()
+  @IsEnum(['my', 'org'])
+  scope?: string;
+
+  // Frontend sends sorting parameters
+  @IsOptional()
+  @IsString()
+  @IsEnum(['createdAt', 'updatedAt', 'title', 'priority', 'status'])
+  sortBy?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsEnum(['asc', 'desc'])
+  sortOrder?: string;
 
   @IsOptional()
   @IsMongoId()
