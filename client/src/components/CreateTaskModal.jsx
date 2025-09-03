@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 
-const CreateTaskModal = ({ onClose, onSubmit }) => {
+const CreateTaskModal = ({ onClose, onSubmit, isLoading = false }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -136,8 +136,9 @@ const CreateTaskModal = ({ onClose, onSubmit }) => {
             <button
               type="submit"
               className="btn btn-primary"
+              disabled={isLoading}
             >
-              Create Task
+              {isLoading ? 'Creating...' : 'Create Task'}
             </button>
           </div>
         </form>

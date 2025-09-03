@@ -1,0 +1,46 @@
+### Test Create Task API
+
+### 1. Login first to get token
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "user123"
+}
+
+### 2. Create a new task
+POST http://localhost:3000/api/tasks
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "title": "Test Task",
+  "description": "This is a test task description",
+  "status": "todo",
+  "priority": "medium",
+  "tags": ["test", "frontend"]
+}
+
+### 3. Create task with minimal data
+POST http://localhost:3000/api/tasks
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "title": "Minimal Task"
+}
+
+### 4. Create task with all fields
+POST http://localhost:3000/api/tasks
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "title": "Complete Task",
+  "description": "A complete task with all fields",
+  "status": "in_progress",
+  "priority": "high",
+  "tags": ["urgent", "important", "feature"],
+  "dueDate": "2024-12-31T23:59:59.000Z"
+}

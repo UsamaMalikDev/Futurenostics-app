@@ -173,8 +173,12 @@ const TasksPage = () => {
     try {
       await createTask(taskData).unwrap();
       setShowCreateModal(false);
+      // Show success message
+      console.log('Task created successfully');
     } catch (error) {
       console.error('Create task failed:', error);
+      // You could add a toast notification here
+      alert('Failed to create task. Please try again.');
     }
   };
   
@@ -474,6 +478,7 @@ const TasksPage = () => {
           <CreateTaskModal
             onClose={() => setShowCreateModal(false)}
             onSubmit={handleCreateTask}
+            isLoading={isCreating}
           />
         )}
         

@@ -27,6 +27,9 @@ export class Task extends Document {
   @Prop({ required: true, index: 'text' })
   title: string;
 
+  @Prop({ type: String })
+  description?: string;
+
   @Prop({ type: String, enum: TaskStatus, default: TaskStatus.TODO, index: true })
   status: TaskStatus;
 
@@ -57,7 +60,7 @@ TaskSchema.index({ orgId: 1, isOverdue: 1 });
 TaskSchema.index({ orgId: 1, tags: 1 });
 
 // Text index for search functionality
-TaskSchema.index({ title: 'text', tags: 'text' });
+TaskSchema.index({ title: 'text', description: 'text', tags: 'text' });
 
 // Index for overdue tasks background job
 TaskSchema.index({ dueDate: 1, status: 1, isOverdue: 1 }); 
