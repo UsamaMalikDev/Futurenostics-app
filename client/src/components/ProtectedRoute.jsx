@@ -2,7 +2,7 @@ import { Navigate } from 'react-router-dom';
 import useSecureAuth from '../hooks/useSecureAuth';
 
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, isLoading } = useSecureAuth();
+  const { isAuthenticated, isLoading, error } = useSecureAuth();
 
   // Show loading while checking authentication
   if (isLoading) {
@@ -14,6 +14,11 @@ const ProtectedRoute = ({ children }) => {
         </div>
       </div>
     );
+  }
+
+  // If there's an error fetching user profile, redirect to login
+  if (error) {
+    return <Navigate to="/login" replace />;
   }
 
   if (!isAuthenticated) {

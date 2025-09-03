@@ -23,6 +23,7 @@ export const useSecureAuth = () => {
     isLoading: profileLoading 
   } = useGetUserProfileQuery(undefined, {
     skip: !isAuthenticated || !!user, // Skip if not authenticated or user already exists
+    retry: false, // Don't retry on error to avoid infinite loops
   });
 
   // Set user data when profile is fetched

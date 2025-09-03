@@ -95,7 +95,22 @@ export const ErrorState = ({
     if (isAuthError) return 'Your session may have expired. Please log in again.';
     if (isRateLimitError) return 'Too many requests. Please wait a moment and try again.';
     if (isServerError) return 'Server error. Our team has been notified.';
-    return error?.data || 'An unexpected error occurred.';
+    
+    // Handle different error formats
+    if (error?.data) {
+      return typeof error.data === 'string' ? error.data : JSON.stringify(error.data);
+    }
+    if (error?.message) {
+      return error.message;
+    }
+    if (typeof error === 'string') {
+      return error;
+    }
+    if (error && typeof error === 'object') {
+      return JSON.stringify(error);
+    }
+    
+    return 'An unexpected error occurred.';
   };
 
   const getErrorTitle = () => {
@@ -128,7 +143,7 @@ export const ErrorState = ({
           <div className="text-sm text-gray-600 space-y-2">
             {error.status && (
               <div>
-                <strong>Status:</strong> {error.status}
+                <strong>Status:</strong> {typeof error.status === 'object' ? JSON.stringify(error.status) : error.status}
               </div>
             )}
             {error.timestamp && (
@@ -138,7 +153,12 @@ export const ErrorState = ({
             )}
             {error.data && (
               <div>
-                <strong>Message:</strong> {error.data}
+                <strong>Message:</strong> {typeof error.data === 'object' ? JSON.stringify(error.data) : error.data}
+              </div>
+            )}
+            {error.message && (
+              <div>
+                <strong>Error:</strong> {error.message}
               </div>
             )}
           </div>
