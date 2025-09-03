@@ -5,9 +5,14 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { randomUUID } from 'crypto';
 
 // Make crypto.randomUUID globally available for @nestjs/schedule
-global.crypto = {
-  randomUUID,
-} as any;
+// Use Object.defineProperty to avoid the read-only property error
+Object.defineProperty(global, 'crypto', {
+  value: {
+    randomUUID,
+  },
+  writable: true,
+  configurable: true,
+});
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);

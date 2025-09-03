@@ -1,5 +1,6 @@
 import { createSlice, createSelector } from '@reduxjs/toolkit';
 import { env } from '../config/env';
+import { secureStorage, sessionStorage, securityUtils } from '../utils/secureStorage';
 
 // Role-based permissions configuration
 const ROLE_PERMISSIONS = {
@@ -39,12 +40,12 @@ const ROLE_PERMISSIONS = {
 };
 
 const initialState = {
-  token: localStorage.getItem('token'),
-  refreshToken: localStorage.getItem('refreshToken'),
-  user: JSON.parse(localStorage.getItem('user') || 'null'),
-  isAuthenticated: !!localStorage.getItem('token'),
-  permissions: null,
-  lastActivity: localStorage.getItem('lastActivity') || null,
+  token: null, // Never store in localStorage
+  refreshToken: null, // Never store in localStorage
+  user: null, // Never store in localStorage - fetch from server
+  isAuthenticated: false, // Determined by token presence
+  permissions: null, // Calculated from user role
+  lastActivity: sessionStorage.getItem('lastActivity') || null,
   sessionTimeout: env.SESSION_TIMEOUT,
   isSessionExpired: false,
   isRefreshing: false,
@@ -65,13 +66,8 @@ const authSlice = createSlice({
       state.isSessionExpired = false;
       state.isRefreshing = false;
       
-      // Persist to localStorage
-      localStorage.setItem('token', token);
-      if (refreshToken) {
-        localStorage.setItem('refreshToken', refreshToken);
-      }
-      localStorage.setItem('user', JSON.stringify(user));
-      localStorage.setItem('lastActivity', state.lastActivity.toString());
+      // Only store minimal session data - NO sensitive data in localStorage
+      sessionStorage.setItem('lastActivity', state.lastActivity.toString());
     },
     
     logout: (state) => {
@@ -84,23 +80,21 @@ const authSlice = createSlice({
       state.isSessionExpired = false;
       state.isRefreshing = false;
       
-      // Clear localStorage
-      localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('user');
-      localStorage.removeItem('lastActivity');
+      // Clear all sensitive data
+      securityUtils.clearSensitiveData();
+      sessionStorage.clear();
     },
     
     updateUser: (state, action) => {
       state.user = { ...state.user, ...action.payload };
       state.permissions = ROLE_PERMISSIONS[state.user.role] || ROLE_PERMISSIONS.user;
       
-      localStorage.setItem('user', JSON.stringify(state.user));
+      // NO localStorage storage - user data stays in memory only
     },
     
     updateLastActivity: (state) => {
       state.lastActivity = Date.now();
-      localStorage.setItem('lastActivity', state.lastActivity.toString());
+      sessionStorage.setItem('lastActivity', state.lastActivity.toString());
     },
     
     setSessionExpired: (state, action) => {
@@ -115,11 +109,8 @@ const authSlice = createSlice({
       state.isSessionExpired = false;
       state.isRefreshing = false;
       
-      localStorage.setItem('token', token);
-      if (refreshToken) {
-        localStorage.setItem('refreshToken', refreshToken);
-      }
-      localStorage.setItem('lastActivity', state.lastActivity.toString());
+      // NO localStorage storage - tokens stay in memory only
+      sessionStorage.setItem('lastActivity', state.lastActivity.toString());
     },
     
     setRefreshing: (state, action) => {
@@ -136,7 +127,17 @@ const authSlice = createSlice({
       state.isSessionExpired = true;
       state.isRefreshing = false;
       
-      localStorage.clear();
+      // Clear all sensitive data
+      securityUtils.clearSensitiveData();
+      sessionStorage.clear();
+    },
+    
+    // New action to set user data from server (no localStorage storage)
+    setUserData: (state, action) => {
+      const user = action.payload;
+      state.user = user;
+      state.permissions = ROLE_PERMISSIONS[user.role] || ROLE_PERMISSIONS.user;
+      // NO localStorage storage - user data stays in memory only
     },
   },
 });
@@ -150,6 +151,7 @@ export const {
   refreshToken,
   setRefreshing,
   clearSession,
+  setUserData,
 } = authSlice.actions;
 
 // Selectors with memoization

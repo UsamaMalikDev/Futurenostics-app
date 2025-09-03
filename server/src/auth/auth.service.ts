@@ -40,11 +40,13 @@ export class AuthService {
     ]);
 
     return {
-      accessToken,
-      refreshToken,
+      access_token: accessToken,
+      refresh_token: refreshToken,
       user: {
         id: user._id,
         email: user.email,
+        name: user.name || user.email.split('@')[0], // Fallback to email prefix if no name
+        role: user.roles?.[0] || 'user', // Use first role or default to 'user'
         roles: user.roles,
         orgId: user.orgId,
       },
@@ -64,14 +66,22 @@ export class AuthService {
       orgId: user.orgId,
     };
 
-    const accessToken = await this.jwtService.signAsync(payload, {
-      expiresIn: this.configService.get<string>('jwt.accessTokenExpiresIn'),
-    });
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.signAsync(payload, {
+        expiresIn: this.configService.get<string>('jwt.accessTokenExpiresIn'),
+      }),
+      this.jwtService.signAsync(payload, {
+        expiresIn: this.configService.get<string>('jwt.refreshTokenExpiresIn'),
+      }),
+    ]);
 
-    return { accessToken };
+    return { 
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    };
   }
   async register(body: any) {
-    const { email, password, role } = body;
-    return this.usersService.create(email, password, null, [role]);
+    const { email, password, role, name } = body;
+    return this.usersService.create(email, password, null, [role], name);
   }
 }

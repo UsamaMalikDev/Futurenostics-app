@@ -12,6 +12,9 @@ export class User extends Document {
   @Prop({ required: true, unique: true, index: true })
   email: string;
 
+  @Prop({ required: false })
+  name?: string;
+
   @Prop({ required: true })
   passwordHash: string;
 

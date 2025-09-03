@@ -23,6 +23,7 @@ async function seed() {
       'admin123',
       orgId,
       [UserRole.ADMIN],
+      'Admin User',
     );
     console.log('✅ Created admin user:', adminUser.email);
 
@@ -31,6 +32,7 @@ async function seed() {
       'manager123',
       orgId,
       [UserRole.MANAGER],
+      'Manager User',
     );
     console.log('✅ Created manager user:', managerUser.email);
 
@@ -39,6 +41,7 @@ async function seed() {
       'user123',
       orgId,
       [UserRole.USER],
+      'Regular User',
     );
     console.log('✅ Created regular user:', regularUser.email);
 

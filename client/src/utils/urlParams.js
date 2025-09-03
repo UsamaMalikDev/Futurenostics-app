@@ -208,19 +208,19 @@ export const parseUrlParams = (searchParams) => {
   return params;
 };
 
-// Hook for URL parameter persistence across sessions
+// Hook for URL parameter persistence across sessions (using sessionStorage for security)
 export const usePersistentUrlParams = (key, defaultValue) => {
   const { getParam, setParam } = useUrlParams();
-  const storedValue = localStorage.getItem(`urlParam_${key}`);
+  const storedValue = sessionStorage.getItem(`urlParam_${key}`);
   
   const value = getParam(key, storedValue || defaultValue);
   
   const setValue = useCallback((newValue) => {
     setParam(key, newValue);
     if (newValue && newValue !== defaultValue) {
-      localStorage.setItem(`urlParam_${key}`, newValue);
+      sessionStorage.setItem(`urlParam_${key}`, newValue);
     } else {
-      localStorage.removeItem(`urlParam_${key}`);
+      sessionStorage.removeItem(`urlParam_${key}`);
     }
   }, [key, setParam, defaultValue]);
   

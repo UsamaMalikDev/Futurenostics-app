@@ -13,10 +13,12 @@ export class UsersService {
     password: string,
     orgId: string,
     roles: UserRole[] = [UserRole.USER],
+    name?: string,
   ): Promise<User> {
     const passwordHash = await bcrypt.hash(password, 12);
     const user = new this.userModel({
       email,
+      name,
       passwordHash,
       orgId: new Types.ObjectId(orgId),
       roles,
