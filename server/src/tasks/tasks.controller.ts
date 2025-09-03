@@ -51,4 +51,9 @@ export class TasksController {
   async bulkUpdate(@Body() bulkUpdateDto: BulkUpdateTasksDto, @Request() req) {
     return this.tasksService.bulkUpdate(bulkUpdateDto, req.user);
   }
+
+  @Delete(':id')
+  async delete(@Param('id') id: string, @Request() req) {
+    return this.tasksService.delete(id, req.user);
+  }
 } 

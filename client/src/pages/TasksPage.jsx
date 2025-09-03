@@ -203,6 +203,9 @@ const TasksPage = () => {
       const result = await updateTask({ id: taskId, ...updates }).unwrap();
       console.log('Task updated successfully:', result);
       setEditingTask(null);
+      
+      // Force refetch the tasks to ensure updated task appears
+      await refetch();
     } catch (error) {
       console.error('Update task failed:', error);
       alert('Failed to update task. Please try again.');
@@ -215,6 +218,9 @@ const TasksPage = () => {
         console.log('Deleting task:', taskId);
         const result = await deleteTask(taskId).unwrap();
         console.log('Task deleted successfully:', result);
+        
+        // Force refetch the tasks to ensure deleted task is removed
+        await refetch();
       } catch (error) {
         console.error('Delete task failed:', error);
         alert('Failed to delete task. Please try again.');

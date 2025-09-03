@@ -125,8 +125,8 @@ export class TasksService {
     const task = await this.findOne(id, user);
     
     const updateData: any = { ...updateTaskDto };
-    if (updateTaskDto.dueDate) {
-      updateData.dueDate = new Date(updateTaskDto.dueDate);
+    if ((updateTaskDto as any).dueDate) {
+      updateData.dueDate = new Date((updateTaskDto as any).dueDate);
     }
     
     const updatedTask = await this.taskModel
@@ -162,5 +162,18 @@ export class TasksService {
       },
       { isOverdue: true }
     ).exec();
+  }
+
+  async delete(id: string, user: any): Promise<void> {
+    const task = await this.findOne(id, user);
+    
+    // Check if user can delete this task
+    if (user.roles.includes(UserRole.USER) && !user.roles.includes(UserRole.MANAGER)) {
+      if (task.ownerId.toString() !== user.id) {
+        throw new ForbiddenException('Access denied');
+      }
+    }
+    
+    await this.taskModel.findByIdAndDelete(id).exec();
   }
 } 

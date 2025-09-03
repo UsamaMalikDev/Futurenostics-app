@@ -229,12 +229,12 @@ export const api = createApi({
           dispatch(api.util.invalidateTags([{ type: 'Task', id: 'LIST' }]));
           dispatch(api.util.invalidateTags(['Task']));
           
-          // Force refetch the current tasks query
+          // Force refetch all getTasks queries
           const state = getState();
-          const currentQuery = state.api.queries;
-          Object.keys(currentQuery).forEach(queryKey => {
+          const queries = state.api.queries;
+          Object.keys(queries).forEach(queryKey => {
             if (queryKey.startsWith('getTasks')) {
-              dispatch(api.util.refetchTags(['Task']));
+              dispatch(api.util.invalidateTags([{ type: 'Task', id: 'LIST' }]));
             }
           });
           
@@ -256,7 +256,7 @@ export const api = createApi({
       ],
       
       // Force refetch after successful update
-      async onQueryStarted({ id, ...updates }, { dispatch, queryFulfilled }) {
+      async onQueryStarted({ id, ...updates }, { dispatch, queryFulfilled, getState }) {
         try {
           const result = await queryFulfilled;
           console.log('Task updated successfully:', result.data);
@@ -264,6 +264,15 @@ export const api = createApi({
           // Invalidate all task queries to ensure fresh data
           dispatch(api.util.invalidateTags([{ type: 'Task', id: 'LIST' }]));
           dispatch(api.util.invalidateTags(['Task']));
+          
+          // Force refetch all getTasks queries
+          const state = getState();
+          const queries = state.api.queries;
+          Object.keys(queries).forEach(queryKey => {
+            if (queryKey.startsWith('getTasks')) {
+              dispatch(api.util.invalidateTags([{ type: 'Task', id: 'LIST' }]));
+            }
+          });
           
         } catch (error) {
           console.error('Update task failed:', error);
@@ -282,7 +291,7 @@ export const api = createApi({
       ],
       
       // Force refetch after successful deletion
-      async onQueryStarted(id, { dispatch, queryFulfilled }) {
+      async onQueryStarted(id, { dispatch, queryFulfilled, getState }) {
         try {
           const result = await queryFulfilled;
           console.log('Task deleted successfully:', result);
@@ -290,6 +299,15 @@ export const api = createApi({
           // Invalidate all task queries to ensure fresh data
           dispatch(api.util.invalidateTags([{ type: 'Task', id: 'LIST' }]));
           dispatch(api.util.invalidateTags(['Task']));
+          
+          // Force refetch all getTasks queries
+          const state = getState();
+          const queries = state.api.queries;
+          Object.keys(queries).forEach(queryKey => {
+            if (queryKey.startsWith('getTasks')) {
+              dispatch(api.util.invalidateTags([{ type: 'Task', id: 'LIST' }]));
+            }
+          });
           
         } catch (error) {
           console.error('Delete task failed:', error);
