@@ -157,6 +157,8 @@ export const api = createApi({
     // Tasks
     getTasks: builder.query({
       query: (params) => {
+        console.log('getTasks query called with params:', params);
+        
         // Clean up parameters - remove empty strings and undefined values
         const cleanParams = {};
         
@@ -175,18 +177,23 @@ export const api = createApi({
         // Always include limit
         cleanParams.limit = Math.min(params.limit || env.DEFAULT_PAGE_SIZE, env.MAX_PAGE_SIZE);
         
+        console.log('getTasks cleanParams:', cleanParams);
+        
         return {
           url: apiEndpoints.tasks,
           params: cleanParams,
         };
       },
-      providesTags: (result, error, arg) => 
-        result?.tasks 
+      providesTags: (result, error, arg) => {
+        const tags = result?.tasks 
           ? [
               ...result.tasks.map(({ id }) => ({ type: 'Task', id })),
               { type: 'Task', id: 'LIST' },
             ]
-          : [{ type: 'Task', id: 'LIST' }],
+          : [{ type: 'Task', id: 'LIST' }];
+        console.log('getTasks providesTags:', tags);
+        return tags;
+      },
       
       // Transform response for better caching
       transformResponse: (response) => ({
@@ -219,25 +226,12 @@ export const api = createApi({
       }),
       invalidatesTags: [{ type: 'Task', id: 'LIST' }],
       
-      // Force refetch of all task queries after successful creation
-      async onQueryStarted(task, { dispatch, queryFulfilled, getState }) {
+      // Add debugging to see what's happening
+      async onQueryStarted(task, { dispatch, queryFulfilled }) {
         try {
           const result = await queryFulfilled;
           console.log('Task created successfully:', result.data);
-          
-          // Invalidate all task queries to ensure fresh data
-          dispatch(api.util.invalidateTags([{ type: 'Task', id: 'LIST' }]));
-          dispatch(api.util.invalidateTags(['Task']));
-          
-          // Force refetch all getTasks queries
-          const state = getState();
-          const queries = state.api.queries;
-          Object.keys(queries).forEach(queryKey => {
-            if (queryKey.startsWith('getTasks')) {
-              dispatch(api.util.invalidateTags([{ type: 'Task', id: 'LIST' }]));
-            }
-          });
-          
+          console.log('Invalidating tags:', [{ type: 'Task', id: 'LIST' }]);
         } catch (error) {
           console.error('Create task failed:', error);
         }
@@ -254,30 +248,6 @@ export const api = createApi({
         { type: 'Task', id },
         { type: 'Task', id: 'LIST' },
       ],
-      
-      // Force refetch after successful update
-      async onQueryStarted({ id, ...updates }, { dispatch, queryFulfilled, getState }) {
-        try {
-          const result = await queryFulfilled;
-          console.log('Task updated successfully:', result.data);
-          
-          // Invalidate all task queries to ensure fresh data
-          dispatch(api.util.invalidateTags([{ type: 'Task', id: 'LIST' }]));
-          dispatch(api.util.invalidateTags(['Task']));
-          
-          // Force refetch all getTasks queries
-          const state = getState();
-          const queries = state.api.queries;
-          Object.keys(queries).forEach(queryKey => {
-            if (queryKey.startsWith('getTasks')) {
-              dispatch(api.util.invalidateTags([{ type: 'Task', id: 'LIST' }]));
-            }
-          });
-          
-        } catch (error) {
-          console.error('Update task failed:', error);
-        }
-      },
     }),
     
     deleteTask: builder.mutation({
@@ -289,30 +259,6 @@ export const api = createApi({
         { type: 'Task', id },
         { type: 'Task', id: 'LIST' },
       ],
-      
-      // Force refetch after successful deletion
-      async onQueryStarted(id, { dispatch, queryFulfilled, getState }) {
-        try {
-          const result = await queryFulfilled;
-          console.log('Task deleted successfully:', result);
-          
-          // Invalidate all task queries to ensure fresh data
-          dispatch(api.util.invalidateTags([{ type: 'Task', id: 'LIST' }]));
-          dispatch(api.util.invalidateTags(['Task']));
-          
-          // Force refetch all getTasks queries
-          const state = getState();
-          const queries = state.api.queries;
-          Object.keys(queries).forEach(queryKey => {
-            if (queryKey.startsWith('getTasks')) {
-              dispatch(api.util.invalidateTags([{ type: 'Task', id: 'LIST' }]));
-            }
-          });
-          
-        } catch (error) {
-          console.error('Delete task failed:', error);
-        }
-      },
     }),
     
     bulkUpdateTasks: builder.mutation({

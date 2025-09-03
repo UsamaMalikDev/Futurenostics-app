@@ -67,8 +67,6 @@ const TasksPage = () => {
     refetchOnWindowFocus: true,
     // Refetch on reconnect
     refetchOnReconnect: true,
-    // Polling for real-time updates (every 30 seconds)
-    pollingInterval: 30000,
   });
 
   // Debug logging
@@ -184,15 +182,8 @@ const TasksPage = () => {
       const result = await createTask(taskData).unwrap();
       console.log('Task created successfully:', result);
       setShowCreateModal(false);
-      
-      // Force refetch the tasks to ensure new task appears
-      await refetch();
-      
-      // Show success message
-      console.log('Task created successfully');
     } catch (error) {
       console.error('Create task failed:', error);
-      // You could add a toast notification here
       alert('Failed to create task. Please try again.');
     }
   };
@@ -203,9 +194,6 @@ const TasksPage = () => {
       const result = await updateTask({ id: taskId, ...updates }).unwrap();
       console.log('Task updated successfully:', result);
       setEditingTask(null);
-      
-      // Force refetch the tasks to ensure updated task appears
-      await refetch();
     } catch (error) {
       console.error('Update task failed:', error);
       alert('Failed to update task. Please try again.');
@@ -218,9 +206,6 @@ const TasksPage = () => {
         console.log('Deleting task:', taskId);
         const result = await deleteTask(taskId).unwrap();
         console.log('Task deleted successfully:', result);
-        
-        // Force refetch the tasks to ensure deleted task is removed
-        await refetch();
       } catch (error) {
         console.error('Delete task failed:', error);
         alert('Failed to delete task. Please try again.');
