@@ -163,7 +163,10 @@ export const api = createApi({
         if (params.scope) cleanParams.scope = params.scope;
         if (params.status && params.status !== '') cleanParams.status = params.status;
         if (params.priority && params.priority !== '') cleanParams.priority = params.priority;
-        if (params.tags && params.tags.length > 0) cleanParams.tags = params.tags;
+        if (params.tags && params.tags.length > 0) {
+          // Ensure tags is sent as comma-separated string for query parameters
+          cleanParams.tags = Array.isArray(params.tags) ? params.tags.join(',') : params.tags;
+        }
         if (params.q && params.q.trim() !== '') cleanParams.q = params.q.trim();
         if (params.cursor) cleanParams.cursor = params.cursor;
         if (params.sortBy) cleanParams.sortBy = params.sortBy;
@@ -216,27 +219,20 @@ export const api = createApi({
       }),
       invalidatesTags: [{ type: 'Task', id: 'LIST' }],
       
-      // Optimistic update
-      async onQueryStarted(task, { dispatch, queryFulfilled, getState }) {
-        const patchResult = dispatch(
-          api.util.updateQueryData('getTasks', { scope: getState().auth.user?.scope || 'my' }, (draft) => {
-            const optimisticTask = {
-              ...task,
-              id: `temp-${Date.now()}`,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-              isOptimistic: true,
-            };
-            draft.tasks.unshift(optimisticTask);
-            draft.total += 1;
-          })
-        );
-        
+      // Force refetch of all task queries after successful creation
+      async onQueryStarted(task, { dispatch, queryFulfilled }) {
         try {
-          await queryFulfilled;
+          const result = await queryFulfilled;
+          console.log('Task created successfully:', result.data);
+          
+          // Invalidate all task queries to ensure fresh data
+          dispatch(api.util.invalidateTags([{ type: 'Task', id: 'LIST' }]));
+          
+          // Also refetch the current tasks query
+          dispatch(api.util.invalidateTags(['Task']));
+          
         } catch (error) {
-          // Revert optimistic update on error
-          patchResult.undo();
+          console.error('Create task failed:', error);
         }
       },
     }),

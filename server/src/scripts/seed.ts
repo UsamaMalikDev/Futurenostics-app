@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from 'src/app/app.module';
+import { AppModule } from '../app/app.module';
 import { UsersService } from '../users/users.service';
 import { TasksService } from '../tasks/tasks.service';
 import { UserRole } from '../users/schemas/user.schema';

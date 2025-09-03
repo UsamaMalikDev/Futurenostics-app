@@ -70,6 +70,9 @@ const TasksPage = () => {
     // Polling for real-time updates (every 30 seconds)
     pollingInterval: 30000,
   });
+
+  // Debug logging
+  console.log('Tasks query result:', { tasksData, isLoading, error, isError });
   
   const [createTask, { isLoading: isCreating }] = useCreateTaskMutation();
   const [updateTask, { isLoading: isUpdating }] = useUpdateTaskMutation();
@@ -171,7 +174,9 @@ const TasksPage = () => {
   
   const handleCreateTask = async (taskData) => {
     try {
-      await createTask(taskData).unwrap();
+      console.log('Creating task with data:', taskData);
+      const result = await createTask(taskData).unwrap();
+      console.log('Task created successfully:', result);
       setShowCreateModal(false);
       // Show success message
       console.log('Task created successfully');
