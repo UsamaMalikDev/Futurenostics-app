@@ -156,20 +156,27 @@ export const api = createApi({
     
     // Tasks
     getTasks: builder.query({
-      query: (params) => ({
-        url: apiEndpoints.tasks,
-        params: {
-          scope: params.scope || 'my',
-          status: params.status,
-          tags: params.tags,
-          priority: params.priority,
-          q: params.q,
-          cursor: params.cursor,
-          limit: Math.min(params.limit || env.DEFAULT_PAGE_SIZE, env.MAX_PAGE_SIZE),
-          sortBy: params.sortBy || 'createdAt',
-          sortOrder: params.sortOrder || 'desc',
-        },
-      }),
+      query: (params) => {
+        // Clean up parameters - remove empty strings and undefined values
+        const cleanParams = {};
+        
+        if (params.scope) cleanParams.scope = params.scope;
+        if (params.status && params.status !== '') cleanParams.status = params.status;
+        if (params.priority && params.priority !== '') cleanParams.priority = params.priority;
+        if (params.tags && params.tags.length > 0) cleanParams.tags = params.tags;
+        if (params.q && params.q.trim() !== '') cleanParams.q = params.q.trim();
+        if (params.cursor) cleanParams.cursor = params.cursor;
+        if (params.sortBy) cleanParams.sortBy = params.sortBy;
+        if (params.sortOrder) cleanParams.sortOrder = params.sortOrder;
+        
+        // Always include limit
+        cleanParams.limit = Math.min(params.limit || env.DEFAULT_PAGE_SIZE, env.MAX_PAGE_SIZE);
+        
+        return {
+          url: apiEndpoints.tasks,
+          params: cleanParams,
+        };
+      },
       providesTags: (result, error, arg) => 
         result?.tasks 
           ? [

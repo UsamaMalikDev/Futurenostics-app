@@ -11,6 +11,7 @@ const TaskFilters = ({ filters, onFilterChange, onSearch }) => {
     { value: 'in_progress', label: 'In Progress' },
     { value: 'review', label: 'Review' },
     { value: 'done', label: 'Done' },
+    { value: 'cancelled', label: 'Cancelled' },
   ];
 
   const priorityOptions = [

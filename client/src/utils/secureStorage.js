@@ -135,6 +135,13 @@ export const securityUtils = {
       localStorage.removeItem(key);
       window.sessionStorage.removeItem(key);
     });
+    
+    // Also clear any old data that might exist
+    const sensitiveKeys = ['token', 'refreshToken', 'user', 'role', 'permissions', 'email', 'password', 'id', 'orgId', 'roles'];
+    sensitiveKeys.forEach(key => {
+      localStorage.removeItem(key);
+      window.sessionStorage.removeItem(key);
+    });
   }
 };
 

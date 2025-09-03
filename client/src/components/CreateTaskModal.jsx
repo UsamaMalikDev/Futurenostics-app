@@ -87,6 +87,7 @@ const CreateTaskModal = ({ onClose, onSubmit }) => {
                 <option value="in_progress">In Progress</option>
                 <option value="review">Review</option>
                 <option value="done">Done</option>
+                <option value="cancelled">Cancelled</option>
               </select>
             </div>
 

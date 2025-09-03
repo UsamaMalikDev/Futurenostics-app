@@ -10,7 +10,7 @@ const PARAM_CONFIG = {
   },
   status: {
     defaultValue: '',
-    validValues: ['', 'todo', 'in_progress', 'review', 'done'],
+    validValues: ['', 'todo', 'in_progress', 'review', 'done', 'cancelled'],
     validate: (value) => PARAM_CONFIG.status.validValues.includes(value),
   },
   priority: {
