@@ -130,6 +130,7 @@ const TasksPage = () => {
   };
   
   const handleSearch = (searchTerm) => {
+    console.log('Search term:', searchTerm);
     setParam('q', searchTerm);
     setParam('cursor', ''); // Reset cursor when searching
   };
@@ -189,19 +190,25 @@ const TasksPage = () => {
   
   const handleUpdateTask = async (taskId, updates) => {
     try {
-      await updateTask({ id: taskId, ...updates }).unwrap();
+      console.log('Updating task:', taskId, updates);
+      const result = await updateTask({ id: taskId, ...updates }).unwrap();
+      console.log('Task updated successfully:', result);
       setEditingTask(null);
     } catch (error) {
       console.error('Update task failed:', error);
+      alert('Failed to update task. Please try again.');
     }
   };
   
   const handleDeleteTask = async (taskId) => {
     if (window.confirm('Are you sure you want to delete this task?')) {
       try {
-        await deleteTask(taskId).unwrap();
+        console.log('Deleting task:', taskId);
+        const result = await deleteTask(taskId).unwrap();
+        console.log('Task deleted successfully:', result);
       } catch (error) {
         console.error('Delete task failed:', error);
+        alert('Failed to delete task. Please try again.');
       }
     }
   };
@@ -401,29 +408,29 @@ const TasksPage = () => {
             ) : (
               <>
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
                     <tr>
-                      <th className="px-6 py-3 text-left">
+                      <th className="px-6 py-4 text-left">
                         <input
                           type="checkbox"
                           checked={selectedTasks.size === tasksData?.tasks?.length}
                           onChange={handleSelectAll}
-                          className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                          className="rounded border-gray-300 text-primary-600 focus:ring-primary-500 focus:ring-2"
                         />
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                         Task
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                         Status
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                         Priority
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                         Tags
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>

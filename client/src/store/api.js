@@ -248,21 +248,18 @@ export const api = createApi({
         { type: 'Task', id: 'LIST' },
       ],
       
-      // Optimistic update
-      async onQueryStarted({ id, ...updates }, { dispatch, queryFulfilled, getState }) {
-        const patchResult = dispatch(
-          api.util.updateQueryData('getTasks', { scope: getState().auth.user?.scope || 'my' }, (draft) => {
-            const task = draft.tasks.find(t => t.id === id);
-            if (task) {
-              Object.assign(task, updates, { updatedAt: new Date().toISOString() });
-            }
-          })
-        );
-        
+      // Force refetch after successful update
+      async onQueryStarted({ id, ...updates }, { dispatch, queryFulfilled }) {
         try {
-          await queryFulfilled;
+          const result = await queryFulfilled;
+          console.log('Task updated successfully:', result.data);
+          
+          // Invalidate all task queries to ensure fresh data
+          dispatch(api.util.invalidateTags([{ type: 'Task', id: 'LIST' }]));
+          dispatch(api.util.invalidateTags(['Task']));
+          
         } catch (error) {
-          patchResult.undo();
+          console.error('Update task failed:', error);
         }
       },
     }),
@@ -277,22 +274,18 @@ export const api = createApi({
         { type: 'Task', id: 'LIST' },
       ],
       
-      // Optimistic update
-      async onQueryStarted(id, { dispatch, queryFulfilled, getState }) {
-        const patchResult = dispatch(
-          api.util.updateQueryData('getTasks', { scope: getState().auth.user?.scope || 'my' }, (draft) => {
-            const index = draft.tasks.findIndex(t => t.id === id);
-            if (index > -1) {
-              draft.tasks.splice(index, 1);
-              draft.total -= 1;
-            }
-          })
-        );
-        
+      // Force refetch after successful deletion
+      async onQueryStarted(id, { dispatch, queryFulfilled }) {
         try {
-          await queryFulfilled;
+          const result = await queryFulfilled;
+          console.log('Task deleted successfully:', result);
+          
+          // Invalidate all task queries to ensure fresh data
+          dispatch(api.util.invalidateTags([{ type: 'Task', id: 'LIST' }]));
+          dispatch(api.util.invalidateTags(['Task']));
+          
         } catch (error) {
-          patchResult.undo();
+          console.error('Delete task failed:', error);
         }
       },
     }),

@@ -141,60 +141,67 @@ const TaskRow = ({ task, isSelected, onSelect, onEdit, onDelete, onUpdate, isEdi
   }
 
   return (
-    <tr className="hover:bg-gray-50">
+    <tr className={`hover:bg-gray-50 transition-colors duration-200 ${isSelected ? 'bg-blue-50 border-l-4 border-blue-500' : ''}`}>
       <td className="px-6 py-4">
         <input
           type="checkbox"
           checked={isSelected}
           onChange={onSelect}
-          className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+          className="rounded border-gray-300 text-primary-600 focus:ring-primary-500 focus:ring-2"
         />
       </td>
       <td className="px-6 py-4">
-        <div>
-          <div className="font-medium text-gray-900">{task.title}</div>
+        <div className="max-w-xs">
+          <div className="font-medium text-gray-900 truncate">{task.title}</div>
           {task.description && (
-            <div className="text-sm text-gray-600 mt-1">{task.description}</div>
+            <div className="text-sm text-gray-600 mt-1 line-clamp-2">{task.description}</div>
           )}
         </div>
       </td>
       <td className="px-6 py-4">
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
+        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(task.status)}`}>
           {task.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
         </span>
       </td>
       <td className="px-6 py-4">
         <div className="flex items-center gap-2">
           <span className="text-lg">{getPriorityIcon(task.priority)}</span>
-          <span className={`text-sm font-medium ${getPriorityColor(task.priority)}`}>
+          <span className={`text-sm font-semibold ${getPriorityColor(task.priority)}`}>
             {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
           </span>
         </div>
       </td>
       <td className="px-6 py-4">
-        <div className="flex flex-wrap gap-1">
-          {task.tags?.map((tag, index) => (
+        <div className="flex flex-wrap gap-1 max-w-xs">
+          {task.tags?.slice(0, 3).map((tag, index) => (
             <span
               key={index}
-              className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800"
+              className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors"
             >
               <Tag className="h-3 w-3 mr-1" />
               {tag}
             </span>
           ))}
+          {task.tags?.length > 3 && (
+            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-200 text-gray-600">
+              +{task.tags.length - 3}
+            </span>
+          )}
         </div>
       </td>
       <td className="px-6 py-4">
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1">
           <button
             onClick={() => onEdit(task)}
-            className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+            className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all duration-200 hover:scale-105"
+            title="Edit task"
           >
             <Edit3 className="h-4 w-4" />
           </button>
           <button
             onClick={() => onDelete(task.id)}
-            className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+            className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-all duration-200 hover:scale-105"
+            title="Delete task"
           >
             <Trash2 className="h-4 w-4" />
           </button>
